@@ -177,6 +177,7 @@ def create_location(brand_name, agent_name):
         location=Location(
             agent=agent_name,
             placeId=place_id,
+            defaultLocale='en',
             conversationalSettings=conversational_settings_value,
             locationEntryPointConfigs=location_entry_point_configs
         ),
