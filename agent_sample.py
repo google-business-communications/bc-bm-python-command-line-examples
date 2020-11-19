@@ -18,7 +18,9 @@ included Python Business Communications library to create, update,
 retrieve, and list agents stored in the Google Business Messages
 platform for the configured Cloud Project.'''
 
+import random
 import re
+import string
 import sys
 import time
 from oauth2client.service_account import ServiceAccountCredentials
@@ -37,11 +39,13 @@ from businesscommunications.businesscommunications_v1_messages import (
     BusinesscommunicationsBrandsAgentsGetRequest,
     BusinesscommunicationsBrandsAgentsListRequest,
     BusinesscommunicationsBrandsAgentsPatchRequest,
+    ContactOption,
     ConversationStarters,
     ConversationalSetting,
     Hours,
     HumanRepresentative,
     MessagingAvailability,
+    NonLocalConfig,
     OfflineMessage,
     OpenUrlAction,
     Phone,
@@ -220,7 +224,32 @@ def create_agent(brand_name):
 
     entry_points = [BusinessMessagesEntryPointConfig(
         allowedEntryPoint=BusinessMessagesEntryPointConfig.AllowedEntryPointValueValuesEnum.LOCATION
+    ), BusinessMessagesEntryPointConfig(
+        allowedEntryPoint=BusinessMessagesEntryPointConfig.AllowedEntryPointValueValuesEnum.NON_LOCAL
     )]
+
+    # Configuration options for launching on non-local entry points
+    non_local_config = NonLocalConfig(
+        # List of phone numbers for call deflection, values must be globally unique
+        # Generating a random phone number for demonstration purposes
+        # This should be replaced with a real brand phone number
+        callDeflectionPhoneNumbers=[Phone(number=random_phone_number())],
+        # Contact information for the agent that displays with the messaging button
+        contactOption=ContactOption(
+                options=[ContactOption.OptionsValueListEntryValuesEnum.WEB_CHAT,
+                    ContactOption.OptionsValueListEntryValuesEnum.FAQS],
+                url='https://www.example-url.com'
+            ),
+        # Domains enabled for messaging within Search, values must be globally unique
+        # Generating a random URL for demonstration purposes
+        # This should be replaced with a real brand URL
+        enabledDomains=[random_url()],
+        # Agent's phone number. Overrides the `phone` field for conversations started from non-local entry points
+        phoneNumber=Phone(number='+12223335555'),
+        # List of CLDR region codes for countries where the agent is allowed to launch `NON_LOCAL` entry points.
+        # Example is for launching in Canada and the USA
+        regionCodes=['CA', 'US']
+    )
 
     agent = Agent(
         displayName='Test Agent',
@@ -237,6 +266,7 @@ def create_agent(brand_name):
             ),
             additionalAgentInteractions=additional_agent_interactions,
             conversationalSettings=conversational_settings_value,
+            nonLocalConfig=non_local_config,
             entryPointConfigs=entry_points
         )
     )
@@ -384,6 +414,25 @@ def delete_agent(agent_name):
         'brands/BRAND_ID/agents/AGENT_ID' format.
     '''
     print(agents_service.Delete(BusinesscommunicationsBrandsAgentsDeleteRequest(name=agent_name)))
+
+def random_phone_number():
+    '''
+    A randomly generated phone number.
+
+    Returns:
+        (str) A random phone number.
+    '''
+    return '+1' + str(random.randint(1000000000, 9999999999))
+
+def random_url():
+    '''
+    A randomly generated url.
+
+    Returns:
+        (str) A random phone number.
+    '''
+    letters = string.ascii_lowercase
+    return 'https://www.' + (''.join(random.choice(letters) for i in range(10))) + '.com'
 
 if __name__ == '__main__':
     main()
