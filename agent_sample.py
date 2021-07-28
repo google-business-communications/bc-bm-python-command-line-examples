@@ -42,6 +42,7 @@ from businesscommunications.businesscommunications_v1_messages import (
     ContactOption,
     ConversationStarters,
     ConversationalSetting,
+    CustomSurveyConfig,
     Hours,
     HumanRepresentative,
     MessagingAvailability,
@@ -54,6 +55,9 @@ from businesscommunications.businesscommunications_v1_messages import (
     SuggestedReply,
     Suggestion,
     SupportedAgentInteraction,
+    SurveyConfig,
+    SurveyQuestion,
+    SurveyResponse,
     TimeOfDay,
     WelcomeMessage
 )
@@ -133,6 +137,60 @@ def main():
     supported_agent_interaction.botRepresentative.botMessagingAvailability.hours = existing_hours
     update_primary_interaction(updated_agent, supported_agent_interaction)
 
+    time.sleep(3)
+
+    print_header('Updating CSAT Survey')
+    survey_config = SurveyConfig(
+        customSurveys=SurveyConfig.CustomSurveysValue(
+            additionalProperties=[SurveyConfig.CustomSurveysValue.AdditionalProperty(
+                key='en',
+                value=CustomSurveyConfig(customQuestions=[
+                    SurveyQuestion(
+                        name="Question Name 1",
+                        questionContent="Does a custom question yield better survey results?",
+                        questionType=SurveyQuestion.QuestionTypeValueValuesEnum.PARTNER_CUSTOM_QUESTION,
+                        responseOptions=[
+                            SurveyResponse(
+                                content="👍",
+                                postbackData="yes"
+                            ),
+                            SurveyResponse(
+                                content="👎",
+                                postbackData="no"
+                            ),
+                        ]),
+                    SurveyQuestion(
+                        name="Question Name 2",
+                        questionContent="How would you rate this agent?",
+                        questionType=SurveyQuestion.QuestionTypeValueValuesEnum.PARTNER_CUSTOM_QUESTION,
+                        responseOptions=[
+                            SurveyResponse(
+                                content="⭐️",
+                                postbackData="1-star"
+                            ),
+                            SurveyResponse(
+                                content="⭐️⭐️",
+                                postbackData="2-star"
+                            ),
+                            SurveyResponse(
+                                content="⭐️⭐️⭐️",
+                                postbackData="3-star"
+                            ),
+                            SurveyResponse(
+                                content="⭐️⭐️⭐️⭐️",
+                                postbackData="4-star"
+                            ),
+                            SurveyResponse(
+                                content="⭐️⭐️⭐️⭐️⭐️",
+                                postbackData="5-star"
+                            ),
+                        ]),
+                    ])
+                ),
+            ]),
+        templateQuestionIds=["GOOGLE_DEFINED_ASSOCIATE_SATISFACTION", "GOOGLE_DEFINED_CUSTOMER_EFFORT_ALTERNATE"]
+    )
+    update_survey_config(updated_agent, survey_config)
     time.sleep(3)
 
     print_header('List Agents')
@@ -251,6 +309,31 @@ def create_agent(brand_name):
         regionCodes=['CA', 'US']
     )
 
+    survey_config = SurveyConfig(
+        customSurveys=SurveyConfig.CustomSurveysValue(
+            additionalProperties=[SurveyConfig.CustomSurveysValue.AdditionalProperty(
+                key='en',
+                value=CustomSurveyConfig(customQuestions=[
+                    SurveyQuestion(
+                        name="Question Name 1",
+                        questionContent="Did this agent do the best that it could?",
+                        questionType=SurveyQuestion.QuestionTypeValueValuesEnum.PARTNER_CUSTOM_QUESTION,
+                        responseOptions=[
+                            SurveyResponse(
+                                content="👍",
+                                postbackData="yes"
+                            ),
+                            SurveyResponse(
+                                content="👎",
+                                postbackData="no"
+                            ),
+                        ]),
+                    ])
+                ),
+            ]),
+        templateQuestionIds=["GOOGLE_DEFINED_ASSOCIATE_SATISFACTION"]
+    )
+
     agent = Agent(
         displayName='Test Agent',
         businessMessagesAgent=BusinessMessagesAgent(
@@ -267,7 +350,8 @@ def create_agent(brand_name):
             additionalAgentInteractions=additional_agent_interactions,
             conversationalSettings=conversational_settings_value,
             nonLocalConfig=non_local_config,
-            entryPointConfigs=entry_points
+            entryPointConfigs=entry_points,
+            surveyConfig=survey_config
         )
     )
 
@@ -343,6 +427,23 @@ def update_primary_interaction(agent, supported_agent_interaction):
 
     agent.businessMessagesAgent.primaryAgentInteraction = supported_agent_interaction
     updated_agent = update_agent(agent, 'businessMessagesAgent.primaryAgentInteraction')
+    return updated_agent
+
+def update_survey_config(agent, survey_config):
+    '''
+    Updates the agent primary agent interaction.
+
+    Args:
+        agent (Agent): The agent that needs to be updated.
+        supported_agent_interaction (PrimaryAgentInteraction): The new agent
+            interaction for the primary interaction.
+
+    Returns:
+        updated_agent (Agent): The updated agent object.
+    '''
+
+    agent.businessMessagesAgent.surveyConfig = survey_config
+    updated_agent = update_agent(agent, 'businessMessagesAgent.surveyConfig')
     return updated_agent
 
 def update_agent(agent, update_mask):

@@ -116,3 +116,15 @@ python location_sample.py <AGENT_NAME>
 ```
 
 Replace AGENT_NAME with a valid agent ID in "brands/BRAND_ID/agents/AGENT_ID" format. If you haven't created an agent, run the agent sample with the NO-DELETE argument to create an agent to reference.
+
+### List template survey questions
+
+This sample lists all template questions provided by Google. You can configure an Agent to send these questions when a survey is triggered.
+
+View the [source code](https://github.com/google-business-communications/bc-bm-python-command-line-examples/blob/master/list_template_questions.py).
+
+Usage:
+
+```bash
+python list_template_questions.py
+```
